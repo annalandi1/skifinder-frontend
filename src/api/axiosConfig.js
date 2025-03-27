@@ -5,10 +5,10 @@ const API = axios.create({
   baseURL: "http://localhost:8080/api", // cambia se usi un altro port o path
 });
 
-// Aggiungi un interceptor globale ad Axios per ogni richiesta
-axios.interceptors.request.use(
+// interceptor globale ad Axios
+API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("jwtToken"); // O ottienilo dalla tua gestione di stato
+    const token = localStorage.getItem("jwtToken");
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }

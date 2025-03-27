@@ -14,7 +14,6 @@ function App() {
       <Route path="/" element={<AuthPage />} />
       <Route element={<LayoutWrapper />}>
         <Route path="/home" element={<EquipmentPage />} />
-        <Route path="/home" element={<EquipmentPage />} />
         <Route path="/preferences" element={<PreferencesPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/map" element={<MapPage />} />

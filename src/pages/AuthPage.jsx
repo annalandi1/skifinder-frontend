@@ -1,6 +1,6 @@
-import { useState } from "react";
-import axios from "axios"; // Importa Axios
+import { useState } from "react"; // Importa Axios
 import "../App.css";
+import API from "../api/axiosConfig";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,7 +11,9 @@ const AuthPage = () => {
     password: "",
     role: "CLIENTE",
   });
-  const [error, setError] = useState(""); // Per gestire eventuali errori
+  const [error, setError] = useState(""); // Per gestire eventuali error
+
+  const [successMessage, setSuccessMessage] = useState("");
 
   const toggleMode = () => setIsLogin(!isLogin);
 
@@ -26,8 +28,8 @@ const AuthPage = () => {
       if (isLogin) {
         console.log("Login con:", formData);
         // Chiamata API per il login
-        response = await axios.post("http://localhost:8080/auth/login", {
-          username: formData.username,
+        response = await API.post("http://localhost:8080/api/auth/login", {
+          login: formData.username,
           password: formData.password,
         });
 
@@ -40,17 +42,29 @@ const AuthPage = () => {
       } else {
         console.log("Registrazione con:", formData);
         // Chiamata API per la registrazione (includi nome e cognome)
-        response = await axios.post("http://localhost:8080/auth/register", {
+        response = await API.post("http://localhost:8080/api/auth/register", {
+          name: formData.name,
+          surname: formData.surname,
+          phoneNumber: formData.phoneNumber,
+          email: formData.email,
           username: formData.username,
           password: formData.password,
           role: formData.role,
-          name: formData.name, // Invia nome
-          surname: formData.surname, // Invia cognome
         });
 
         // Mostra un messaggio di successo o redirigi
         console.log("Utente registrato:", response.data);
-        window.location.href = "/login"; // Oppure dove vuoi redirigere
+        setSuccessMessage("Registrazione completata! Ora effettua il login.");
+        setFormData({
+          name: "",
+          surname: "",
+          username: "",
+          password: "",
+          role: "",
+          phoneNumber: "",
+          email: "",
+        });
+        setIsLogin(true); //mostra il form login
       }
     } catch (err) {
       console.error("Errore API:", err);
@@ -86,6 +100,22 @@ const AuthPage = () => {
               <input
                 className="un"
                 type="text"
+                name="phoneNumber"
+                placeholder="number"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+              />
+              <input
+                className="un"
+                type="text"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              <input
+                className="un"
+                type="text"
                 name="name"
                 placeholder="Nome"
                 value={formData.name}
@@ -105,6 +135,7 @@ const AuthPage = () => {
                 value={formData.role}
                 onChange={handleChange}
               >
+                <option value="">Seleziona ruolo</option>
                 <option value="CLIENTE">Cliente</option>
                 <option value="NOLEGGIATORE">Noleggiatore</option>
               </select>
@@ -126,8 +157,8 @@ const AuthPage = () => {
             </a>
           </p>
         </form>
-        {error && <p className="error-message">{error}</p>}{" "}
-        {/* Mostra eventuali errori */}
+        {error && <p className="error-message">{error}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
       </div>
     </div>
   );

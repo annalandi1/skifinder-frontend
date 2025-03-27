@@ -3,22 +3,25 @@ import { Home, Heart, MapPin, User } from "lucide-react";
 
 function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-md flex justify-around py-2 md:hidden z-50">
-      <NavLink to="/home" className="flex flex-col items-center">
+    <nav className="fixed-bottom bg-white shadow-sm d-flex justify-content-around py-2 w-100 z-50">
+      <NavLink to="/home" className="d-flex flex-column align-items-center">
         <Home size={24} />
-        <span className="text-xs">Home</span>
+        <span className="small">Home</span>
       </NavLink>
-      <NavLink to="/preferences" className="flex flex-col items-center">
+      <NavLink
+        to="/preferences"
+        className="d-flex flex-column align-items-center"
+      >
         <Heart size={24} />
-        <span className="text-xs">Preferiti</span>
+        <span className="small">Preferiti</span>
       </NavLink>
-      <NavLink to="/map" className="flex flex-col items-center">
+      <NavLink to="/map" className="d-flex flex-column align-items-center">
         <MapPin size={24} />
-        <span className="text-xs">Mappa</span>
+        <span className="small">Mappa</span>
       </NavLink>
-      <NavLink to="/profile" className="flex flex-col items-center">
+      <NavLink to="/profile" className="d-flex flex-column align-items-center">
         <User size={24} />
-        <span className="text-xs">Profilo</span>
+        <span className="small">Profilo</span>
       </NavLink>
     </nav>
   );
