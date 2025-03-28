@@ -15,6 +15,10 @@ const ProfileCard = ({ user, setUser, error, setError }) => {
   const handleSave = async () => {
     setLoading(true);
     try {
+      // Prima aggiorna i dati testuali
+      await API.put("/auth/me", { ...user, name });
+
+      // Poi aggiorna la foto se presente
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
@@ -23,7 +27,7 @@ const ProfileCard = ({ user, setUser, error, setError }) => {
         });
       }
 
-      await API.put("/auth/me", { ...user, name });
+      // Ricarica l'utente aggiornato
       const updated = await API.get("/auth/me");
       setUser(updated.data);
       setFile(null);

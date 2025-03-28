@@ -1,25 +1,57 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import API from "../api/axiosConfig";
 
 const MapPage = () => {
+  const [map, setMap] = useState(null);
+
   useEffect(() => {
-    const map = L.map("map").setView([46.0667, 11.1167], 10);
+    const initMap = L.map("map").setView([46.0667, 11.1167], 10);
+    setMap(initMap);
 
     L.tileLayer(
-      "https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey=YOUR_GEOAPIFY_API_KEY",
+      "https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey=73ae30d2f4064b05ab87dac05b9a39ca",
       {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 18,
       }
-    ).addTo(map);
+    ).addTo(initMap);
 
-    const marker = L.marker([46.0667, 11.1167]).addTo(map);
-    marker.bindPopup("<b>Ciao!</b><br />Qui un'attrezzatura.").openPopup();
-
-    return () => map.remove();
+    return () => initMap.remove();
   }, []);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const fetchEquipment = async () => {
+      try {
+        const res = await API.get("/equipment");
+        const bounds = [];
+
+        res.data.forEach((equipment) => {
+          console.log("📍 Equipment:", equipment);
+          const loc = equipment.location;
+          if (loc?.latitude && loc?.longitude) {
+            const marker = L.marker([loc.latitude, loc.longitude]).addTo(map);
+            marker.bindPopup(
+              `<b>${equipment.name}</b><br>${equipment.description}`
+            );
+            bounds.push([loc.latitude, loc.longitude]);
+          }
+        });
+
+        if (bounds.length) {
+          map.fitBounds(bounds);
+        }
+      } catch (err) {
+        console.error("❌ Errore nel recupero attrezzature:", err);
+      }
+    };
+
+    fetchEquipment();
+  }, [map]);
 
   return (
     <div className="container py-4">

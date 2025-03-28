@@ -3,27 +3,61 @@ import { Home, Heart, MapPin, User } from "lucide-react";
 
 function SideMenu() {
   return (
-    <aside className="d-none d-md-block position-fixed top-0 left-0 bg-white shadow-lg p-4 w-250px h-100vh">
-      <NavLink to="/home" className="d-flex align-items-center gap-2 py-2">
-        <Home size={20} />
-        <span>Home</span>
-      </NavLink>
-      <NavLink
-        to="/preferences"
-        className="d-flex align-items-center gap-2 py-2"
-      >
-        <Heart size={20} />
-        <span>Preferiti</span>
-      </NavLink>
-      <NavLink to="/map" className="d-flex align-items-center gap-2 py-2">
-        <MapPin size={20} />
-        <span>Mappa</span>
-      </NavLink>
-      <NavLink to="/profile" className="d-flex align-items-center gap-2 py-2">
-        <User size={20} />
-        <span>Profilo</span>
-      </NavLink>
-    </aside>
+    <nav className="d-none d-md-flex justify-content-between align-items-center px-4 py-3 bg-white shadow-sm border-bottom">
+      {/* LOGO a sinistra */}
+      <div className="fw-bold text-primary fs-5">SkiFinder</div>
+
+      {/* LINK a destra */}
+      <div className="d-flex gap-4">
+        <NavLink
+          to="/home"
+          className={({ isActive }) =>
+            `d-flex align-items-center gap-2 nav-link ${
+              isActive ? "text-primary fw-bold" : "text-dark"
+            }`
+          }
+        >
+          <Home size={18} />
+          <span>Home</span>
+        </NavLink>
+
+        <NavLink
+          to="/preferences"
+          className={({ isActive }) =>
+            `d-flex align-items-center gap-2 nav-link ${
+              isActive ? "text-primary fw-bold" : "text-dark"
+            }`
+          }
+        >
+          <Heart size={18} />
+          <span>Preferiti</span>
+        </NavLink>
+
+        <NavLink
+          to="/map"
+          className={({ isActive }) =>
+            `d-flex align-items-center gap-2 nav-link ${
+              isActive ? "text-primary fw-bold" : "text-dark"
+            }`
+          }
+        >
+          <MapPin size={18} />
+          <span>Mappa</span>
+        </NavLink>
+
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `d-flex align-items-center gap-2 nav-link ${
+              isActive ? "text-primary fw-bold" : "text-dark"
+            }`
+          }
+        >
+          <User size={18} />
+          <span>Profilo</span>
+        </NavLink>
+      </div>
+    </nav>
   );
 }
 

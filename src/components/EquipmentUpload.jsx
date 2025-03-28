@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/axiosConfig";
-import axios from "axios"; // Aggiungi axios per fare le richieste a Geoapify
 
-const EquipmentUpload = ({ onEquipmentUploaded }) => {
+const EquipmentUpload = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [size, setSize] = useState("");
   const [type, setType] = useState("");
-  const [isAvailable, setIsAvailable] = useState(true);
-  const [location, setLocation] = useState(""); // Manteniamo la location
-  const [locationSuggestions, setLocationSuggestions] = useState([]); // Per memorizzare i suggerimenti
+  const [location, setLocation] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [equipmentList, setEquipmentList] = useState([]);
-
-  const geoapifyApiKey = "73ae30d2f4064b05ab87dac05b9a39ca";
+  const [editingEquipment, setEditingEquipment] = useState(null);
 
   useEffect(() => {
-    // Recupera le attrezzature caricate dall'utente noleggiatore
+    fetchEquipment();
+  }, []);
+
+  const fetchEquipment = () => {
     API.get("/equipment/owned")
       .then((response) => {
         setEquipmentList(response.data);
@@ -27,35 +26,10 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
       .catch((err) => {
         setError("Errore nel caricamento delle attrezzature", err);
       });
-  }, []);
+  };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-  };
-
-  const handleLocationChange = async (e) => {
-    const query = e.target.value;
-    setLocation(query);
-
-    // Fai la richiesta all'API di Geoapify per l'autocomplete
-    if (query.length > 2) {
-      try {
-        const response = await axios.get(
-          `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=${geoapifyApiKey}`
-        );
-        setLocationSuggestions(response.data.features); // Memorizza i suggerimenti
-      } catch (err) {
-        console.error("Errore durante la ricerca della località", err);
-      }
-    } else {
-      setLocationSuggestions([]); // Pulisci i suggerimenti quando la query è troppo corta
-    }
-  };
-
-  const handleLocationSelect = (selectedLocation) => {
-    // Imposta la location selezionata e rimuove i suggerimenti
-    setLocation(selectedLocation.properties.formatted);
-    setLocationSuggestions([]);
   };
 
   const handleSubmit = async (e) => {
@@ -70,30 +44,20 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
     formData.append("price", price);
     formData.append("size", size);
     formData.append("type", type);
-    formData.append("isAvailable", isAvailable);
     formData.append("location", location);
 
     try {
-      const response = await API.post("/equipment/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      // Aggiungi la nuova attrezzatura alla lista
-      setEquipmentList([response.data, ...equipmentList]);
-
-      // Informa il componente padre che l'attrezzatura è stata caricata
-      if (onEquipmentUploaded) {
-        onEquipmentUploaded(response.data);
+      if (editingEquipment) {
+        await API.put(`/equipment/${editingEquipment.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await API.post("/equipment/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
-
-      // Reset dei campi del form
-      setName("");
-      setDescription("");
-      setPrice("");
-      setSize("");
-      setType("");
-      setLocation("");
-      setFile(null);
+      fetchEquipment();
+      resetForm();
     } catch (err) {
       setError("Errore nel caricamento dell'attrezzatura", err);
     } finally {
@@ -101,9 +65,39 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
     }
   };
 
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setPrice("");
+    setSize("");
+    setType("");
+    setLocation("");
+    setFile(null);
+    setEditingEquipment(null);
+  };
+
+  const handleEdit = (equipment) => {
+    setEditingEquipment(equipment);
+    setName(equipment.name);
+    setDescription(equipment.description);
+    setPrice(equipment.price);
+    setSize(equipment.size);
+    setType(equipment.type);
+    setLocation(equipment.location?.address || "");
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Sei sicuro di voler eliminare questa attrezzatura?")) {
+      await API.delete(`/equipment/${id}`);
+      fetchEquipment();
+    }
+  };
+
   return (
     <div className="card shadow-sm p-4">
-      <h3>Carica attrezzatura</h3>
+      <h3>
+        {editingEquipment ? "Modifica attrezzatura" : "Carica attrezzatura"}
+      </h3>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <input
@@ -133,7 +127,7 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
                 className="form-control"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                min="1" // Imposta il minimo a 1
+                min="1"
                 required
               />
             </div>
@@ -164,40 +158,19 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
         </div>
         <div className="mb-3">
           <input
-            type="checkbox"
-            checked={isAvailable}
-            onChange={(e) => setIsAvailable(e.target.checked)}
-          />
-          <label className="ms-2">Disponibile</label>
-        </div>
-        {/* Location input with autocomplete */}
-        <div className="mb-3">
-          <input
             type="text"
             placeholder="Indirizzo"
             className="form-control"
             value={location}
-            onChange={handleLocationChange} // Chiamato ad ogni modifica
+            onChange={(e) => setLocation(e.target.value)}
             required
           />
-          <ul className="list-group mt-2">
-            {locationSuggestions.map((suggestion) => (
-              <li
-                key={suggestion.properties.place_id}
-                className="list-group-item"
-                onClick={() => handleLocationSelect(suggestion)}
-              >
-                {suggestion.properties.formatted}
-              </li>
-            ))}
-          </ul>
         </div>
         <div className="mb-3">
           <input
             type="file"
             className="form-control"
             onChange={handleFileChange}
-            required
           />
         </div>
         <button
@@ -205,7 +178,11 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
           className="btn btn-primary w-100"
           disabled={loading}
         >
-          {loading ? "Caricamento..." : "Carica attrezzatura"}
+          {loading
+            ? "Caricamento..."
+            : editingEquipment
+            ? "Salva modifiche"
+            : "Carica attrezzatura"}
         </button>
       </form>
 
@@ -215,7 +192,26 @@ const EquipmentUpload = ({ onEquipmentUploaded }) => {
       <div className="list-group">
         {equipmentList.length > 0 ? (
           equipmentList.map((equipment) => (
-            <div key={equipment.id} className="list-group-item">
+            <div
+              key={equipment.id}
+              className="list-group-item position-relative"
+            >
+              <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex">
+                <button
+                  className="btn btn-sm btn-outline-secondary me-2"
+                  onClick={() => handleEdit(equipment)}
+                  title="Modifica"
+                >
+                  ✏️
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => handleDelete(equipment.id)}
+                  title="Elimina"
+                >
+                  🗑️
+                </button>
+              </div>
               <h5>{equipment.name}</h5>
               {equipment.imagePaths && equipment.imagePaths.length > 0 && (
                 <img
